@@ -78,7 +78,7 @@ namespace WhiterunGuard
             #if DEBUG
                 await _client.GetUserAsync(617471240667398154).Result.SendMessageAsync("Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
             #else
-                await  _client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104).SendMessageAsync("<@everyone Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
+                await  _client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104).SendMessageAsync("@everyone Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
             #endif
         }
         #endregion
