@@ -54,7 +54,6 @@ namespace WhiterunGuard
                 {
                     
                 }
-                LiveStarted?.Invoke(this, EventArgs.Empty);
                 if (live && !_isOnline)
                 {
                     _isOnline = true;
