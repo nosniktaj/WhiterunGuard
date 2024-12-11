@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
@@ -9,46 +10,21 @@ namespace WhiterunGuard
     internal class Program
     {
         private static DiscordSocketClient _client = null!;
-        private static TikTokHandler _tiktokHandler = null!;
+        private static TikTokHandler _tikTokHandler = null!;
         private static bool _running = true;
+        
         public static async Task Main()
         {
 
             await startClient();
-            _tiktokHandler = new TikTokHandler();
 
             while (_running)
             {
-                
+                //Console Control Code
             }
         }
 
         #region Private Static Methods
-
-        private static async Task foo()
-        {
-            int i = 0;
-            while (true)
-            {
-                Console.WriteLine("foo");
-
-                if (i >= 1 && _tiktokHandler != null)
-                {
-                    _tiktokHandler.Dispose();
-                    _tiktokHandler = null;
-                }
-
-                else if (i >= 1 && _tiktokHandler == null)
-                {
-                    Console.WriteLine("TikTokHandler is null, reinitializing...");
-                }
-
-                i++;
-                await Task.Delay(5000);
-            }
-        }
-
-
         private static async Task startClient()
         {
             _client = new DiscordSocketClient();
@@ -68,6 +44,9 @@ namespace WhiterunGuard
         #region Standard Events
         private static async Task Client_Ready()
         {
+            _tikTokHandler = new ();
+            _tikTokHandler.LiveStarted += TikTokLiveStarted;
+            
             var guild = _client.GetGuild(1205836076187394079);
             var sayCommand = new SlashCommandBuilder();
             sayCommand.WithName("say");
@@ -93,6 +72,17 @@ namespace WhiterunGuard
         }
         #endregion 
         
+        #region Custom Events
+        private static async void TikTokLiveStarted(object? sender, EventArgs e)
+        {
+            #if DEBUG
+                await _client.GetUserAsync(617471240667398154).Result.SendMessageAsync("Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
+            #else
+                await  _client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104).SendMessageAsync("<@everyone Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
+            #endif
+        }
+        #endregion
+        
         #region Commands
         private static async Task SlashCommandHandler(SocketSlashCommand command)
         {
@@ -107,12 +97,10 @@ namespace WhiterunGuard
         private static async Task Say(SocketSlashCommand command)
         {
             var message = (string)command.Data.Options.First().Value;
-            var channel = (SocketTextChannel)command.Channel;
             var sender = (SocketGuildUser)command.User;
             if (sender is not null && (sender.GuildPermissions.Administrator || sender.Roles.Any(r => r.Name.Equals("Lyla's Boyfriend", StringComparison.OrdinalIgnoreCase))))
             {
-                await channel.SendMessageAsync(message);
-                await command.RespondAsync($"Message sent.");
+                await command.RespondAsync(message);
             }
             else
             {
