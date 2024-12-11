@@ -31,8 +31,8 @@ namespace WhiterunGuard
                 _tiktok = Py.Import("TikTok");
             }
 
-            NextTime = DateTime.UtcNow;
-            SleepPeriod = 10000;
+            NextTime = DateTime.UtcNow.TimeAccurateToMinutes().AddMinutes(1);
+            SleepPeriod = 60000;
             Start();
         }
         public override void Stop()
@@ -57,7 +57,6 @@ namespace WhiterunGuard
                 LiveStarted?.Invoke(this, EventArgs.Empty);
                 if (live && !_isOnline)
                 {
-                    Console.WriteLine("Online");
                     _isOnline = true;
                     LiveStarted?.Invoke(this, EventArgs.Empty);
                 }
