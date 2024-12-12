@@ -47,7 +47,9 @@ namespace WhiterunGuard
             {
                 try
                 {
-                     live = (bool)_tiktok.check_live();
+                    dynamic client = _tiktok.client; 
+                    live = (bool)_tiktok.check_live(client);
+                    
                 }
                 catch(Exception e)
                 {
