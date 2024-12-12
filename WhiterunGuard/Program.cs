@@ -11,6 +11,8 @@ namespace WhiterunGuard
     {
         private static DiscordSocketClient _client = null!;
         private static TikTokHandler _tikTokHandler = null!;
+        private static string _discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? string.Empty;
+
         private static bool _running = true;
         
         public static async Task Main()
@@ -27,15 +29,21 @@ namespace WhiterunGuard
         #region Private Static Methods
         private static async Task startClient()
         {
-            _client = new DiscordSocketClient();
-            _client.Log += Log;
-            _client.Ready += Client_Ready;
-            _client.SlashCommandExecuted += SlashCommandHandler;
-
-            var token = "MTMxNDMzOTMyNjY1MzYzMjUzMw.GAW8x_.Sy1lxRU8zd51Yoo1xlsuIt0jnU3aC_OdkdQitE";
+            if (string.IsNullOrWhiteSpace(_discordToken))
+            {
+                Console.WriteLine("No valid Discord Token has been provided.");
+            }
+            else
+            {
+                _client = new DiscordSocketClient();
+                _client.Log += Log;
+                _client.Ready += Client_Ready;
+                _client.SlashCommandExecuted += SlashCommandHandler;
             
-            await _client.LoginAsync(TokenType.Bot, token);
-            await _client.StartAsync();
+                await _client.LoginAsync(TokenType.Bot, _discordToken);
+                await _client.StartAsync();
+            }
+
 
         }
 

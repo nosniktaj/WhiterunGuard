@@ -4,18 +4,17 @@ using Python.Runtime;
 
 namespace WhiterunGuard
 {
-    public class TikTokHandler : BaseThread
+    public sealed class TikTokHandler : BaseThread
     {
 
         public EventHandler? LiveStarted; 
         
-        private dynamic _tiktok;
-        private IntPtr _allowThread;
-        private bool _isOnline = false; 
+        private readonly dynamic _tiktok;
+        private readonly IntPtr _allowThread;
+        private bool _isOnline; 
         
         public TikTokHandler()
         {
-            
             Runtime.PythonDLL = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? @"C:\Users\JonathanA\AppData\Local\Programs\Python\Python312\python312.dll"
                 : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
@@ -43,16 +42,16 @@ namespace WhiterunGuard
 
         protected override void PerformTask()
         {
+            var live = false;
             using (Py.GIL())
             {
-                var live = false;
                 try
                 {
                      live = (bool)_tiktok.check_live();
                 }
-                catch
+                catch(Exception e)
                 {
-                    
+                    Console.Write(e);
                 }
                 if (live && !_isOnline)
                 {
