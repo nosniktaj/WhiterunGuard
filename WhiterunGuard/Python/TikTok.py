@@ -8,8 +8,9 @@ client: TikTokLiveClient = TikTokLiveClient(
 
 
 
-def check_live():
-   x = asyncio.run(client.is_live())
-   return x
+def check_live(client):
+    loop = asyncio.get_event_loop()
+    x = loop.run_until_complete(client.is_live())
+    return x
 
   
