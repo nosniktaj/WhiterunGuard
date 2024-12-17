@@ -1,118 +1,87 @@
-//***********************************************************
-//
-// Copyright © 2017-2024 AMI Marine Ltd.  All rights reserved
-//
-//***********************************************************
-
-using System;
-using System.Reflection;
-using System.Threading;
-
 namespace WhiterunGuard
 {
-   public class BaseThread : IDisposable
-   {
-      #region Public Properties
+    public class BaseThread : IDisposable
+    {
+        #region Private Fields
 
-      public bool RunTaskNow { get; set; }
+        private Thread _thread = null!;
 
-      #endregion
+        #endregion
 
-      #region Protected Fields
 
-      protected ManualResetEvent ResetEvent = new ManualResetEvent(false);
+        #region IDisposable Implementation
 
-      protected DateTime NextTime = DateTime.UtcNow.TimeAccurateToMinutes().AddMinutes(1);
+        public void Dispose()
+        {
+            ResetEvent.Dispose();
+            GC.SuppressFinalize(this);
+        }
 
-      protected object SyncLock = new object();
+        #endregion
 
-      protected int Offset = 0;
-      protected int SleepPeriod = 100;
+        #region Protected Methods
 
-      protected bool Stopping;
+        protected virtual void PerformTask()
+        {
+        }
 
-      #endregion
+        #endregion
 
-      #region Private Fields
+        #region Protected Fields
 
-      private Thread _thread = null!;
+        protected ManualResetEvent ResetEvent = new(false);
 
-      #endregion
-         
+        protected DateTime NextTime = DateTime.UtcNow.TimeAccurateToMinutes().AddMinutes(1);
 
-      #region IDisposable Implementation
+        protected object SyncLock = new();
 
-      public void Dispose()
-      {
+        protected int Offset = 0;
+        protected int SleepPeriod = 100;
 
-            ResetEvent?.Dispose();
-         
-      }
+        protected bool Stopping;
 
-      #endregion
+        #endregion
 
-      #region Public Methods
+        #region Public Methods
 
-      public virtual void Start()
-      {
+        public virtual void Start()
+        {
             Stopping = false;
 
-            if (ResetEvent.SafeWaitHandle.IsClosed)
-            {
-               ResetEvent = new ManualResetEvent(false);
-            }
+            if (ResetEvent.SafeWaitHandle.IsClosed) ResetEvent = new ManualResetEvent(false);
 
-            if (ResetEvent.Set())
+            if (!ResetEvent.Set()) return;
+            _thread = new Thread(BackgroundThread)
             {
-               _thread = new Thread(BackgroundThread)
-               {
-                  IsBackground = true
-               };
-               _thread.Start();
-            }
-         
-      }
+                IsBackground = true
+            };
+            _thread.Start();
+        }
 
-      public virtual void Stop()
-      {
-         
+        public virtual void Stop()
+        {
             Stopping = true;
 
             if (!ResetEvent.SafeWaitHandle.IsClosed
                 && ResetEvent.Reset())
-            {
-               ResetEvent.Close();
-            }
-         
-      }
+                ResetEvent.Close();
+        }
 
-      #endregion
+        #endregion
 
-      #region Protected Methods
+        #region Private Methods
 
-      protected virtual void PerformTask()
-      {
-      }
-
-      #endregion
-
-      #region Private Methods
-
-      private void BackgroundThread()
-      {
-
-
+        private void BackgroundThread()
+        {
             while (!Stopping
                    && !ResetEvent.SafeWaitHandle.IsClosed
                    && ResetEvent.WaitOne())
             {
-
-                  PerformTask();
-               Thread.Sleep(SleepPeriod);
+                PerformTask();
+                Thread.Sleep(SleepPeriod);
             }
-         
-         }
-      }
+        }
+    }
 
-      #endregion
-   }
+    #endregion
+}

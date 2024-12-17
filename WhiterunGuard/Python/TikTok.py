@@ -1,5 +1,6 @@
 import asyncio
 
+import httpx
 from TikTokLive import TikTokLiveClient
 
 client: TikTokLiveClient = TikTokLiveClient(
@@ -17,9 +18,10 @@ def check_live(client):
     except RuntimeError: 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    
 
-    x = loop.run_until_complete(client.is_live())
-    return x
 
-  
+    try:
+        x = loop.run_until_complete(client.is_live())
+        return x
+    except httpx.ConnectTimeout:
+        return False
