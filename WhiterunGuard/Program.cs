@@ -18,7 +18,7 @@ namespace WhiterunGuard
 
         #region Custom Events
 
-        private static void TikTokLiveStarted(object? sender, EventArgs e) => _ = _discord.TikTokLiveStarted();
+        private static void TikTokLiveStarted(object? sender, bool isLive) => _ = _discord.TikTokLiveStarted(isLive);
 
         #endregion
 

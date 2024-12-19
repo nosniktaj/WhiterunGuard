@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Net;
+using Discord.Rest;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -7,6 +8,12 @@ namespace WhiterunGuard
 {
     public class DiscordHandler
     {
+        #region Private Properties
+
+        private RestUserMessage? _liveMessage;
+
+        #endregion
+
         #region Public Properties
 
         public DiscordSocketClient Client = null!;
@@ -21,14 +28,22 @@ namespace WhiterunGuard
 
         #region Public Methods
 
-        public async Task TikTokLiveStarted()
+        public async Task TikTokLiveStarted(bool isLive)
         {
 #if DEBUG
-            await Client.GetUserAsync(617471240667398154).Result
-                .SendMessageAsync("Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
+            if (isLive)
+                await Client.GetUserAsync(617471240667398154).Result
+                    .SendMessageAsync("Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
+            else
+                await Client.GetUserAsync(617471240667398154).Result.SendMessageAsync("Lyla's live has ended");
 #else
-            await Client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104)
-                .SendMessageAsync("@everyone Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
+            if (isLive)
+                _liveMessage = Client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104)
+                    .SendMessageAsync(
+                        "@everyone Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live").Result;
+            else if (_liveMessage != null) await _liveMessage.Channel.DeleteMessageAsync(_liveMessage);
+
+
 #endif
         }
 

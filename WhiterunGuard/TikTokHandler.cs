@@ -5,13 +5,13 @@ namespace WhiterunGuard
 {
     public sealed class TikTokHandler : BaseThread
     {
-
-        public EventHandler? LiveStarted; 
-        
-        private readonly dynamic _tiktok;
         private readonly IntPtr _allowThread;
-        private bool _isOnline; 
-        
+
+        private readonly dynamic _tiktok;
+        private bool _isOnline;
+
+        public EventHandler<bool> LiveStarted;
+
         public TikTokHandler()
         {
             Runtime.PythonDLL = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -19,7 +19,7 @@ namespace WhiterunGuard
                 : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                     ? @"/Library/Frameworks/Python.framework/Versions/3.10/Python"
                     : @"/usr/lib/x86_64-linux-gnu/libpython3.10.so";
-            
+
             PythonEngine.Initialize();
             _allowThread = PythonEngine.BeginAllowThreads();
             using (Py.GIL())
@@ -33,6 +33,7 @@ namespace WhiterunGuard
             SleepPeriod = 60000;
             Start();
         }
+
         public override void Stop()
         {
             PythonEngine.EndAllowThreads(_allowThread);
@@ -46,18 +47,18 @@ namespace WhiterunGuard
             {
                 try
                 {
-                    dynamic client = _tiktok.client; 
+                    var client = _tiktok.client;
                     live = (bool)_tiktok.check_live(client);
-                    
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.Write(e);
                 }
+
                 if (live && !_isOnline)
                 {
                     _isOnline = true;
-                    LiveStarted?.Invoke(this, EventArgs.Empty);
+                    LiveStarted?.Invoke(this, true);
                 }
                 else if (!live && _isOnline)
                 {
