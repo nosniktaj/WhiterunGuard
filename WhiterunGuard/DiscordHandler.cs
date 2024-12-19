@@ -109,7 +109,7 @@ namespace WhiterunGuard
             var message = (string)command.Data.Options.First().Value;
             var sender = (SocketGuildUser)command.User;
             if (sender.IsAdmin())
-                await command.RespondAsync(message);
+                await command.RespondAsync(message, allowedMentions: AllowedMentions.All);
             else
                 await command.RespondAsync("Sorry, you don't have permission to use this command.");
         }
