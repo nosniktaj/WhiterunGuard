@@ -6,7 +6,7 @@ namespace WhiterunConfig
     public class ConfigManager
     {
         private static readonly string _configDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "Nosniktaj")
+            ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Nosniktaj")
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ? @"/Library/Frameworks/Python.framework/Versions/3.10/Python"
                 : Path.Combine("etc", "opt", "nosniktaj");
@@ -14,7 +14,7 @@ namespace WhiterunConfig
 
         private static readonly string _configFilePath = Path.Combine(_configDirectory, "config.xml");
 
-        public ReactionRoles ReactionRoles = new();
+        public readonly ReactionRoles ReactionRoles = new();
 
 
         public ConfigManager()
@@ -26,20 +26,20 @@ namespace WhiterunConfig
         {
             if (!File.Exists(_configFilePath)) Save();
             var xElement = XElement.Load(_configFilePath);
-            ReactionRoles.Load(xElement.Element("ReactionRoles"));
+            ReactionRoles.Load(xElement.Element("ReactionRoles")!);
         }
 
         public void Save()
         {
             Directory.CreateDirectory(_configDirectory);
-            var xElement = GenerateXML();
+            var xElement = GenerateXml();
             xElement.Save(_configFilePath);
         }
 
-        private XElement GenerateXML()
+        private XElement GenerateXml()
         {
-            var retval = new XElement("Configration");
-            retval.Add(ReactionRoles.GenerateXML());
+            var retval = new XElement("Configuration");
+            retval.Add(ReactionRoles.GenerateXml());
             return retval;
         }
     }

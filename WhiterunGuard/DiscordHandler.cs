@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Discord;
 using Discord.Net;
 using Discord.Rest;
@@ -9,15 +8,15 @@ namespace WhiterunGuard
 {
     public class DiscordHandler
     {
-        #region Public Properties
+        #region Events
 
-        public DiscordSocketClient Client = null!;
+        public static readonly EventHandler<NewReactionRole> OnNewReactionRole = null!;
 
         #endregion
 
-        #region Events
+        #region Public Properties
 
-        public static EventHandler<NewReactionRole> OnNewReactionRole;
+        public DiscordSocketClient Client = null!;
 
         #endregion
 
@@ -140,26 +139,28 @@ namespace WhiterunGuard
 
         private static async Task AddReactionRole(SocketSlashCommand command)
         {
-            var messageIDOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "message-id").Value;
-            var roleOption = (IRole)command.Data.Options.FirstOrDefault(x => x.Name == "role").Value;
-            var emojiOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "emoji").Value;
-            ulong.TryParse(messageIDOption, out var messageID);
-            var message = command.Channel.GetMessageAsync(messageID).Result;
+            var messageIdOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "message-id")!.Value;
+            var roleOption = (IRole)command.Data.Options.FirstOrDefault(x => x.Name == "role")!.Value;
+            var emojiOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "emoji")!.Value;
+            IMessage message = null!;
+            if (ulong.TryParse(messageIdOption, out var messageId))
+                message = command.Channel.GetMessageAsync(messageId).Result;
+
             if (message is not null)
                 if (roleOption is not null)
                 {
                     var emote = emojiOption.GetEmote();
                     if (emote is not null)
                     {
-
-
                         await command.RespondAsync($"Message: {message.Id}\n {roleOption.Mention}\n {emote}",
                             allowedMentions: AllowedMentions.None, ephemeral: true);
-                        DiscordHandler.OnNewReactionRole?.Invoke(null, new NewReactionRole(emote, message, roleOption));
+                        OnNewReactionRole?.Invoke(null, new NewReactionRole(emote, message, roleOption));
                     }
 
                     else
+                    {
                         await command.RespondAsync("No Emote Detected", ephemeral: true);
+                    }
                 }
                 else
                 {

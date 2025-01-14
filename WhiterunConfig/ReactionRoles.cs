@@ -4,23 +4,23 @@ namespace WhiterunConfig
 {
     public class ReactionRoles
     {
-        private readonly List<ReactionRole> ReactionRoleList = new();
+        private readonly List<ReactionRole> _reactionRoleList = [];
 
         public void Load(XElement xElement)
         {
-            ReactionRoleList.Clear();
+            _reactionRoleList.Clear();
             foreach (var (element, input) in xElement.Elements("ReactionRole")
                          .Select(reactionRole => (reactionRole, new ReactionRole())))
             {
                 input.Load(element);
-                ReactionRoleList.Add(input);
+                _reactionRoleList.Add(input);
             }
         }
 
-        public XElement GenerateXML()
+        public XElement GenerateXml()
         {
             var xElement = new XElement("ReactionRoles");
-            foreach (var ReactionRole in ReactionRoleList) xElement.Add(ReactionRole.GenerateXML());
+            foreach (var reactionRole in _reactionRoleList) xElement.Add(reactionRole.GenerateXml());
             return xElement;
         }
     }

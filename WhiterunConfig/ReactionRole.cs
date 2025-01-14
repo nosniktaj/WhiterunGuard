@@ -17,7 +17,7 @@ namespace WhiterunConfig
             Role = xElement.GetString("Role", string.Empty);
         }
 
-        public XElement GenerateXML()
+        public XElement GenerateXml()
         {
             var xElement = new XElement("ReactionRole");
             xElement.Add(new XElement("Message", Message));
