@@ -8,14 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Discord.Net" Version="3.16.0" />
-      <PackageReference Include="pythonnet" Version="3.1.0-preview2024-09-06" />
+        <PackageReference Include="Discord.Net" Version="3.16.0"/>
+        <PackageReference Include="pythonnet" Version="3.1.0-preview2024-09-06"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Python\TikTok.py">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+        <None Update="Python\TikTok.py">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\WhiterunConfig\WhiterunConfig.csproj"/>
     </ItemGroup>
 
 </Project>

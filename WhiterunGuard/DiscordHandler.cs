@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Discord;
 using Discord.Net;
 using Discord.Rest;
@@ -8,15 +9,15 @@ namespace WhiterunGuard
 {
     public class DiscordHandler
     {
-        #region Private Properties
-
-        private RestUserMessage? _liveMessage;
-
-        #endregion
-
         #region Public Properties
 
         public DiscordSocketClient Client = null!;
+
+        #endregion
+
+        #region Events
+
+        public static EventHandler<NewReactionRole> OnNewReactionRole;
 
         #endregion
 
@@ -49,6 +50,14 @@ namespace WhiterunGuard
 
         #endregion
 
+        #region Private Properties
+
+        private RestUserMessage? _liveMessage;
+
+        private static SocketGuild? _guild;
+
+        #endregion
+
         #region Private Methods
 
         private async Task StartClient()
@@ -71,7 +80,7 @@ namespace WhiterunGuard
 
         private async Task Client_Ready()
         {
-            var guild = Client.GetGuild(1205836076187394079);
+            _guild = Client.GetGuild(1205836076187394079);
 
             #region SayCommand
 
@@ -80,10 +89,32 @@ namespace WhiterunGuard
             sayCommand.WithDescription("Say a message");
             sayCommand.AddOption("message", ApplicationCommandOptionType.String, "The message you want to say",
                 true);
-            sayCommand.WithDefaultMemberPermissions(GuildPermission.Administrator);
             try
             {
-                await guild.CreateApplicationCommandAsync(sayCommand.Build());
+                await _guild.CreateApplicationCommandAsync(sayCommand.Build());
+            }
+            catch (HttpException ex)
+            {
+                var json = JsonConvert.SerializeObject(ex.Errors, Formatting.Indented);
+                Console.WriteLine(json);
+            }
+
+            #endregion
+
+            #region AddReactionRole
+
+            var addReactionRoleCommand = new SlashCommandBuilder();
+            addReactionRoleCommand.WithName("addreactionrole");
+            addReactionRoleCommand.WithDescription("Add a reaction role");
+            addReactionRoleCommand.AddOption("message-id", ApplicationCommandOptionType.String,
+                "The ID of the message to process", true);
+            addReactionRoleCommand.AddOption("role", ApplicationCommandOptionType.Role, "The role you wish to grant",
+                true);
+            addReactionRoleCommand.AddOption("emoji", ApplicationCommandOptionType.String, "The emoji for the reaction",
+                true);
+            try
+            {
+                await _guild.CreateApplicationCommandAsync(addReactionRoleCommand.Build());
             }
             catch (HttpException ex)
             {
@@ -101,7 +132,41 @@ namespace WhiterunGuard
                 case "say":
                     await Say(command);
                     break;
+                case "addreactionrole":
+                    await AddReactionRole(command);
+                    break;
             }
+        }
+
+        private static async Task AddReactionRole(SocketSlashCommand command)
+        {
+            var messageIDOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "message-id").Value;
+            var roleOption = (IRole)command.Data.Options.FirstOrDefault(x => x.Name == "role").Value;
+            var emojiOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "emoji").Value;
+            ulong.TryParse(messageIDOption, out var messageID);
+            var message = command.Channel.GetMessageAsync(messageID).Result;
+            if (message is not null)
+                if (roleOption is not null)
+                {
+                    var emote = emojiOption.GetEmote();
+                    if (emote is not null)
+                    {
+
+
+                        await command.RespondAsync($"Message: {message.Id}\n {roleOption.Mention}\n {emote}",
+                            allowedMentions: AllowedMentions.None, ephemeral: true);
+                        DiscordHandler.OnNewReactionRole?.Invoke(null, new NewReactionRole(emote, message, roleOption));
+                    }
+
+                    else
+                        await command.RespondAsync("No Emote Detected", ephemeral: true);
+                }
+                else
+                {
+                    await command.RespondAsync("No Role Detected", ephemeral: true);
+                }
+            else
+                await command.RespondAsync("No Message Detected", ephemeral: true);
         }
 
         private static async Task Say(SocketSlashCommand command)
@@ -109,9 +174,14 @@ namespace WhiterunGuard
             var message = (string)command.Data.Options.First().Value;
             var sender = (SocketGuildUser)command.User;
             if (sender.IsAdmin())
-                await command.RespondAsync(message, allowedMentions: AllowedMentions.All);
+            {
+                await command.Channel.SendMessageAsync(message, allowedMentions: AllowedMentions.All);
+                await command.RespondAsync(message, allowedMentions: AllowedMentions.None, ephemeral: true);
+            }
             else
-                await command.RespondAsync("Sorry, you don't have permission to use this command.");
+            {
+                await command.RespondAsync("Sorry, you don't have permission to use this command.", ephemeral: true);
+            }
         }
 
         #endregion

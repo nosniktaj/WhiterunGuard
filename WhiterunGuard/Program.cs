@@ -1,4 +1,5 @@
 ﻿using Discord;
+using WhiterunConfig;
 
 namespace WhiterunGuard
 {
@@ -7,6 +8,7 @@ namespace WhiterunGuard
         private static readonly DiscordHandler _discord = new();
         private static TikTokHandler _tikTokHandler = null!;
         private static readonly ConsoleCommandHandler _commandHandler = new();
+        private static ConfigManager _configManager = new();
 
         public static void Main()
         {

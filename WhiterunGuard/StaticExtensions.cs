@@ -1,3 +1,4 @@
+using Discord;
 using Discord.WebSocket;
 
 namespace WhiterunGuard
@@ -10,5 +11,8 @@ namespace WhiterunGuard
         public static bool IsAdmin(this SocketGuildUser? user) => user is not null &&
                                                                   (user.GuildPermissions.Administrator ||
                                                                    user.Id == 6174712406673981542);
+
+        public static IEmote? GetEmote(this string input) => Emoji.TryParse(input, out var emoji) ? emoji :
+            Emote.TryParse(input, out var emote) ? emote : null;
     }
 }
