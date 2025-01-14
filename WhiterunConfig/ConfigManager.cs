@@ -9,7 +9,7 @@ namespace WhiterunConfig
             ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Nosniktaj")
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ? @"/Library/Frameworks/Python.framework/Versions/3.10/Python"
-                : Path.Combine("etc", "opt", "nosniktaj");
+                : Path.Combine("/etc", "opt", "nosniktaj");
 
 
         private static readonly string _configFilePath = Path.Combine(_configDirectory, "config.xml");
