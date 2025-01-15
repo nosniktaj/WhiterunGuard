@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using Discord.WebSocket;
 
 namespace WhiterunConfig
 {
@@ -13,20 +14,35 @@ namespace WhiterunConfig
 
 
         private static readonly string _configFilePath = Path.Combine(_configDirectory, "config.xml");
-
         public readonly ReactionRoles ReactionRoles = new();
 
+        private readonly DiscordSocketClient _client;
+        private ulong _guildId;
 
-        public ConfigManager()
+
+        public ConfigManager(DiscordSocketClient client)
         {
+            _client = client;
             LoadConfig();
+        }
+
+
+        public ulong GuildId
+        {
+            get => _guildId;
+            set
+            {
+                _guildId = value;
+                Save();
+            }
         }
 
         private void LoadConfig()
         {
             if (!File.Exists(_configFilePath)) Save();
             var xElement = XElement.Load(_configFilePath);
-            ReactionRoles.Load(xElement.Element("ReactionRoles")!);
+            _guildId = xElement.GetUlong("GuildId", 1205836076187394079);
+            ReactionRoles.Load(xElement.Element("ReactionRoles")!, _client.GetGuild(_guildId));
         }
 
         public void Save()
@@ -39,6 +55,7 @@ namespace WhiterunConfig
         private XElement GenerateXml()
         {
             var retval = new XElement("Configuration");
+            retval.Add(new XElement("GuildId", _guildId));
             retval.Add(ReactionRoles.GenerateXml());
             return retval;
         }

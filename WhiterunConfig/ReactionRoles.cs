@@ -1,26 +1,28 @@
 using System.Xml.Linq;
+using Discord.WebSocket;
 
 namespace WhiterunConfig
 {
     public class ReactionRoles
     {
-        private readonly List<ReactionRole> _reactionRoleList = [];
+        public readonly List<ReactionRole> ReactionRoleList = [];
 
-        public void Load(XElement xElement)
+        public void Load(XElement xElement, SocketGuild guild)
         {
-            _reactionRoleList.Clear();
+            ReactionRoleList.Clear();
             foreach (var (element, input) in xElement.Elements("ReactionRole")
                          .Select(reactionRole => (reactionRole, new ReactionRole())))
             {
-                input.Load(element);
-                _reactionRoleList.Add(input);
+                input.Load(element, guild);
+                if (!(input.Message == null || input.Role == null || input.Reaction == null))
+                    ReactionRoleList.Add(input);
             }
         }
 
         public XElement GenerateXml()
         {
             var xElement = new XElement("ReactionRoles");
-            foreach (var reactionRole in _reactionRoleList) xElement.Add(reactionRole.GenerateXml());
+            foreach (var reactionRole in ReactionRoleList) xElement.Add(reactionRole.GenerateXml());
             return xElement;
         }
     }

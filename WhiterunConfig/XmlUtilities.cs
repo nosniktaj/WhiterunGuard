@@ -11,7 +11,13 @@ namespace WhiterunConfig
                 ? xElement.Element(xName)?.Value
                 : defaultValue)!;
 
-        public static IEmote GetEmote(this XElement xElement, XName xName, Emoji defaultValue) =>
+        public static ulong GetUlong(this XElement xElement, XName xName, ulong defaultValue) =>
+            xElement.Element(xName) is not null
+            && ulong.TryParse(xElement.Element(xName)!.Value, out var result)
+                ? result
+                : defaultValue;
+
+        public static IEmote? GetEmote(this XElement xElement, XName xName, Emoji? defaultValue) =>
             xElement.Element(xName) is not null
                 ? Emoji.TryParse(xElement.Element(xName)!.Value, out var emoji) ? emoji :
                 Emote.TryParse(xElement.Element(xName)!.Value, out var emote) ? emote :

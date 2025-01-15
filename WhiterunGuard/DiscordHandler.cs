@@ -10,19 +10,17 @@ namespace WhiterunGuard
     {
         #region Events
 
-        public static readonly EventHandler<NewReactionRole> OnNewReactionRole = null!;
-
-        #endregion
-
-        #region Public Properties
-
-        public DiscordSocketClient Client = null!;
+        public EventHandler<NewReactionRole> OnNewReactionRole = null!;
 
         #endregion
 
         #region Constructor
 
-        public DiscordHandler() => _ = StartClient();
+        public DiscordHandler(DiscordSocketClient client)
+        {
+            _client = client;
+            _ = StartClient().GetAwaiter();
+        }
 
         #endregion
 
@@ -32,16 +30,16 @@ namespace WhiterunGuard
         {
 #if DEBUG
             if (isLive)
-                await Client.GetUserAsync(617471240667398154).Result
+                await _client.GetUserAsync(617471240667398154).Result
                     .SendMessageAsync("Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live");
             else
-                await Client.GetUserAsync(617471240667398154).Result.SendMessageAsync("Lyla's live has ended");
+                await _client.GetUserAsync(617471240667398154).Result.SendMessageAsync("Lyla's live has ended");
 #else
             if (isLive)
-                _liveMessage = Client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104)
+                _liveMessage = _client.GetGuild(1205836076187394079).GetTextChannel(1205836076728451104)
                     .SendMessageAsync(
                         "@everyone Lyla is now live on TikTok! \n https://www.tiktok.com/@lylaskyrim/live").Result;
-            else if (_liveMessage != null) await _liveMessage.Channel.DeleteMessageAsync(_liveMessage);
+            else if (_liveMessage != null) await _liveMessage.DeleteAsync();
 
 
 #endif
@@ -49,13 +47,15 @@ namespace WhiterunGuard
 
         #endregion
 
-        #region Private Properties
+        #region Private Fields
 
+        private readonly DiscordSocketClient _client;
         private RestUserMessage? _liveMessage;
 
-        private static SocketGuild? _guild;
+        private SocketGuild? _guild;
 
         #endregion
+
 
         #region Private Methods
 
@@ -68,18 +68,17 @@ namespace WhiterunGuard
             }
             else
             {
-                Client = new DiscordSocketClient();
-                Client.Ready += Client_Ready;
-                Client.SlashCommandExecuted += SlashCommandHandler;
+                _client.Ready += _client_Ready;
+                _client.SlashCommandExecuted += SlashCommandHandler;
 
-                await Client.LoginAsync(TokenType.Bot, discordToken);
-                await Client.StartAsync();
+                await _client.LoginAsync(TokenType.Bot, discordToken);
+                await _client.StartAsync();
             }
         }
 
-        private async Task Client_Ready()
+        private async Task _client_Ready()
         {
-            _guild = Client.GetGuild(1205836076187394079);
+            _guild = _client.GetGuild(1205836076187394079);
 
             #region SayCommand
 
@@ -124,7 +123,7 @@ namespace WhiterunGuard
             #endregion
         }
 
-        private static async Task SlashCommandHandler(SocketSlashCommand command)
+        private async Task SlashCommandHandler(SocketSlashCommand command)
         {
             switch (command.Data.Name)
             {
@@ -137,11 +136,13 @@ namespace WhiterunGuard
             }
         }
 
-        private static async Task AddReactionRole(SocketSlashCommand command)
+        private async Task AddReactionRole(SocketSlashCommand command)
         {
             var messageIdOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "message-id")!.Value;
             var roleOption = (IRole)command.Data.Options.FirstOrDefault(x => x.Name == "role")!.Value;
             var emojiOption = (string)command.Data.Options.FirstOrDefault(x => x.Name == "emoji")!.Value;
+            var role = _guild.GetRole(roleOption.Id);
+
             IMessage message = null!;
             if (ulong.TryParse(messageIdOption, out var messageId))
                 message = command.Channel.GetMessageAsync(messageId).Result;
@@ -152,9 +153,9 @@ namespace WhiterunGuard
                     var emote = emojiOption.GetEmote();
                     if (emote is not null)
                     {
-                        await command.RespondAsync($"Message: {message.Id}\n {roleOption.Mention}\n {emote}",
+                        await command.RespondAsync($"Message: {message.Id}\n {role.Mention}\n {emote}",
                             allowedMentions: AllowedMentions.None, ephemeral: true);
-                        OnNewReactionRole?.Invoke(null, new NewReactionRole(emote, message, roleOption));
+                        OnNewReactionRole?.Invoke(null, new NewReactionRole(emote, message, role));
                     }
 
                     else
@@ -170,7 +171,7 @@ namespace WhiterunGuard
                 await command.RespondAsync("No Message Detected", ephemeral: true);
         }
 
-        private static async Task Say(SocketSlashCommand command)
+        private async Task Say(SocketSlashCommand command)
         {
             var message = (string)command.Data.Options.First().Value;
             var sender = (SocketGuildUser)command.User;

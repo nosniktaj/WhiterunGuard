@@ -1,24 +1,34 @@
 using System.Text;
+using Discord.WebSocket;
+using WhiterunConfig;
 
 namespace WhiterunGuard
 {
     public class ConsoleCommandHandler
     {
-        #region Private Fields
-
-        private readonly StringBuilder _consoleString = new();
-
-        #endregion
-
         #region Public Proprties
+
+        public ConfigManager? ConfigManager = null;
 
         public bool Running = true;
 
         #endregion
 
+        #region Private Fields
+
+        private readonly DiscordSocketClient _client;
+
+        private readonly StringBuilder _consoleString = new();
+
+        #endregion
+
         #region Constructor
 
-        public ConsoleCommandHandler() => Task.Run(Run);
+        public ConsoleCommandHandler(DiscordSocketClient client)
+        {
+            _client = client;
+            Task.Run(Run);
+        }
 
         #endregion
 
@@ -76,6 +86,9 @@ namespace WhiterunGuard
                 case "ver":
                     WriteConsoleLine("Version 1.0.0");
                     break;
+                case "guild":
+                    UpdateGuild(parts[1]);
+                    break;
             }
         }
 
@@ -102,6 +115,17 @@ namespace WhiterunGuard
                         WriteConsoleLine("Invalid Key");
                         break;
                 }
+            }
+        }
+
+        private void UpdateGuild(string guildIdString)
+        {
+            if (ConfigManager is not null
+                && ulong.TryParse(guildIdString, out var guildId)
+                && _client.GetGuild(guildId) is not null)
+            {
+                WriteConsoleLine("Guild Updated Successfully");
+                ConfigManager.GuildId = guildId;
             }
         }
     }
