@@ -14,7 +14,7 @@ namespace WhiterunConfig
                          .Select(reactionRole => (reactionRole, new ReactionRole())))
             {
                 input.Load(element, guild);
-                if (!(input.Message == null || input.Role == null || input.Reaction == null))
+                if (!(input.Message == null))
                     ReactionRoleList.Add(input);
             }
         }

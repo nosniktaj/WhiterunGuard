@@ -1,5 +1,7 @@
 ﻿using Discord;
+using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using WhiterunConfig;
 
 namespace WhiterunGuard
@@ -8,61 +10,48 @@ namespace WhiterunGuard
     {
         #region Public Properties
 
-        public static readonly DiscordSocketClient Client = new();
+        public static DiscordSocketClient Client;
 
         #endregion
 
+        private static ServiceProvider _services;
+        private static ConsoleCommandHandler? _commandHandler;
+        private static TikTokHandler? _tikTokHandler;
 
         private static DiscordHandler? _discord;
-        private static TikTokHandler? _tikTokHandler;
-        private static ConsoleCommandHandler? _commandHandler;
-        private static ConfigManager? _configManager;
-
-        private static bool _ready = false;
 
         public static void Main()
         {
-            _discord = new(Client);
-            
-            _commandHandler = new(Client);
-            
-            _discord.OnNewReactionRole += NewReactionRole;
+            // Set up DI
+            Client = new(new DiscordSocketConfig()
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged,
+                LogGatewayIntentWarnings = true
+            });
+            _services = new ServiceCollection()
+                .AddSingleton(Client)
+                .AddSingleton<InteractionService>()
+                .AddSingleton<ConfigManager>() // Register ConfigManager
+                .AddSingleton<DiscordHandler>() // Register the main handler
+                .AddSingleton<TikTokHandler>() // Register other dependencies
+                .AddSingleton<ConsoleCommandHandler>()
+                .BuildServiceProvider();
             Client.Log += Log;
             Client.Ready += Client_Ready;
-            while (!_ready) ;
-            while (_commandHandler.Running) ;
-        }
 
-        private static void NewReactionRole(object? sender, NewReactionRole e)
-        {
-            ReactionRole reactionRole = new()
-            {
-                Role = e.Role,
-                Message = e.Message,
-                Reaction = e.Emote
-            };
-            _configManager!.ReactionRoles.ReactionRoleList.Add(reactionRole);
-            _configManager.Save();
-        }
+            _commandHandler = _services.GetRequiredService<ConsoleCommandHandler>();
+            _discord = _services.GetRequiredService<DiscordHandler>();
+            _tikTokHandler = _services.GetRequiredService<TikTokHandler>();
 
-
-        #region Custom Events
-
-        private static void TikTokLiveStarted(object? sender, bool isLive) => _ = _discord.TikTokLiveStarted(isLive);
-
-        #endregion
-
-        #region Discord Net Events
-
-        private static Task Client_Ready()
-        {
-            _tikTokHandler = new();
-            _configManager = new(Client);
-            _commandHandler!.ConfigManager = _configManager;
             _tikTokHandler.LiveStarted += TikTokLiveStarted;
-            _ready = true;
-            return Task.CompletedTask;
+            while (_commandHandler.Running) ;
+
+            Client?.Dispose();
         }
+
+        private static Task Client_Ready() =>
+            //_services.GetRequiredService<ConfigManager>();
+            Task.CompletedTask;
 
         private static Task Log(LogMessage arg)
         {
@@ -70,6 +59,6 @@ namespace WhiterunGuard
             return Task.CompletedTask;
         }
 
-        #endregion
+        private static void TikTokLiveStarted(object? sender, bool isLive) => _ = _discord.TikTokLiveStarted(isLive);
     }
 }

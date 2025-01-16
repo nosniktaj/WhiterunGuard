@@ -32,9 +32,6 @@ namespace WhiterunGuard
         protected ManualResetEvent ResetEvent = new(false);
 
         protected DateTime NextTime = DateTime.UtcNow.TimeAccurateToMinutes().AddMinutes(1);
-
-        protected object SyncLock = new();
-
         protected int Offset = 0;
         protected int SleepPeriod = 100;
 

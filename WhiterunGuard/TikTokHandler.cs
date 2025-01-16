@@ -63,6 +63,7 @@ namespace WhiterunGuard
                 else if (!live && _isOnline)
                 {
                     _isOnline = false;
+                    LiveStarted?.Invoke(this, false);
                 }
             }
         }

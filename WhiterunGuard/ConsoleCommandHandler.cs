@@ -112,7 +112,7 @@ namespace WhiterunGuard
                         confirmed = true;
                         break;
                     default:
-                        WriteConsoleLine("Invalid Key");
+                        WriteConsoleLine($"{key.KeyChar.ToString()} is an invalid key");
                         break;
                 }
             }

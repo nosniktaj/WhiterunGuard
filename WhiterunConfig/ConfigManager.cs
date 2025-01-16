@@ -23,7 +23,14 @@ namespace WhiterunConfig
         public ConfigManager(DiscordSocketClient client)
         {
             _client = client;
-            LoadConfig();
+            LoadGuild();
+        }
+
+        private void LoadGuild()
+        {
+            if (!File.Exists(_configFilePath)) Save();
+            var xElement = XElement.Load(_configFilePath);
+            _guildId = xElement.GetUlong("GuildId", 1205836076187394079);
         }
 
 
@@ -37,12 +44,14 @@ namespace WhiterunConfig
             }
         }
 
-        private void LoadConfig()
+        public void LoadConfig()
         {
             if (!File.Exists(_configFilePath)) Save();
             var xElement = XElement.Load(_configFilePath);
             _guildId = xElement.GetUlong("GuildId", 1205836076187394079);
+            while (_client.Guilds.Count < 1) ;
             ReactionRoles.Load(xElement.Element("ReactionRoles")!, _client.GetGuild(_guildId));
+            Console.WriteLine("Loaded Config");
         }
 
         public void Save()
