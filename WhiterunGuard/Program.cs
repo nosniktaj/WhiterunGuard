@@ -22,10 +22,9 @@ namespace WhiterunGuard
 
         public static void Main()
         {
-            // Set up DI
             Client = new(new DiscordSocketConfig()
             {
-                GatewayIntents = GatewayIntents.AllUnprivileged,
+                GatewayIntents = GatewayIntents.All,
                 LogGatewayIntentWarnings = true
             });
             _services = new ServiceCollection()
@@ -37,7 +36,6 @@ namespace WhiterunGuard
                 .AddSingleton<ConsoleCommandHandler>()
                 .BuildServiceProvider();
             Client.Log += Log;
-            Client.Ready += Client_Ready;
 
             _commandHandler = _services.GetRequiredService<ConsoleCommandHandler>();
             _discord = _services.GetRequiredService<DiscordHandler>();
@@ -48,10 +46,6 @@ namespace WhiterunGuard
 
             Client?.Dispose();
         }
-
-        private static Task Client_Ready() =>
-            //_services.GetRequiredService<ConfigManager>();
-            Task.CompletedTask;
 
         private static Task Log(LogMessage arg)
         {
