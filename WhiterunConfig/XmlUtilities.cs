@@ -5,7 +5,7 @@ namespace WhiterunConfig
 {
     public static class XmlUtilities
     {
-        public static string GetString(this XElement xElement, XName xName, string defaultValue) =>
+        public static string? GetString(this XElement xElement, XName xName, string defaultValue) =>
             (xElement.Element(xName) is not null
              && !string.IsNullOrWhiteSpace(xElement.Element(xName)!.Value)
                 ? xElement.Element(xName)?.Value

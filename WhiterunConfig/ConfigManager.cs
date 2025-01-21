@@ -4,54 +4,38 @@ using Discord.WebSocket;
 
 namespace WhiterunConfig
 {
-    public class ConfigManager
+    public class ConfigManager : BaseXML
     {
         private static readonly string _configDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Nosniktaj")
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? @"/Library/Frameworks/Python.framework/Versions/3.10/Python"
+                ? string.Empty //TO BE ADDED
                 : Path.Combine("/etc", "opt", "nosniktaj");
 
 
         private static readonly string _configFilePath = Path.Combine(_configDirectory, "config.xml");
-        public readonly ReactionRoles ReactionRoles = new();
+
+        public readonly Guilds Guilds;
 
         private readonly DiscordSocketClient _client;
-        private ulong _guildId;
 
 
         public ConfigManager(DiscordSocketClient client)
         {
             _client = client;
-            LoadGuild();
+            Guilds = new Guilds(_client);
         }
 
-        private void LoadGuild()
+
+        public void Load()
         {
             if (!File.Exists(_configFilePath)) Save();
             var xElement = XElement.Load(_configFilePath);
-            _guildId = xElement.GetUlong("GuildId", 1205836076187394079);
-        }
 
-
-        public ulong GuildId
-        {
-            get => _guildId;
-            set
-            {
-                _guildId = value;
-                Save();
-            }
-        }
-
-        public void LoadConfig()
-        {
-            if (!File.Exists(_configFilePath)) Save();
-            var xElement = XElement.Load(_configFilePath);
-            _guildId = xElement.GetUlong("GuildId", 1205836076187394079);
+            Guilds.Load(xElement.Element("Guilds"));
             while (_client.Guilds.Count < 1) ;
-            ReactionRoles.Load(xElement.Element("ReactionRoles")!, _client.GetGuild(_guildId));
             Console.WriteLine("Loaded Config");
+            Save();
         }
 
         public void Save()
@@ -61,11 +45,11 @@ namespace WhiterunConfig
             xElement.Save(_configFilePath);
         }
 
-        private XElement GenerateXml()
+        public override XElement GenerateXml()
         {
             var retval = new XElement("Configuration");
-            retval.Add(new XElement("GuildId", _guildId));
-            retval.Add(ReactionRoles.GenerateXml());
+            var guildElement = new XElement("Guilds");
+            retval.Add(Guilds.GenerateXml());
             return retval;
         }
     }

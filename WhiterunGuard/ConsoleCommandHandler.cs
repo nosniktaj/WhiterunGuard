@@ -86,9 +86,6 @@ namespace WhiterunGuard
                 case "ver":
                     WriteConsoleLine("Version 1.0.0");
                     break;
-                case "guild":
-                    UpdateGuild(parts[1]);
-                    break;
             }
         }
 
@@ -104,6 +101,7 @@ namespace WhiterunGuard
                 {
                     case ConsoleKey.Y:
                         WriteConsoleLine("App Ending...");
+                        ConfigManager?.Save();
                         confirmed = true;
                         Running = false;
                         break;
@@ -115,17 +113,6 @@ namespace WhiterunGuard
                         WriteConsoleLine($"{key.KeyChar.ToString()} is an invalid key");
                         break;
                 }
-            }
-        }
-
-        private void UpdateGuild(string guildIdString)
-        {
-            if (ConfigManager is not null
-                && ulong.TryParse(guildIdString, out var guildId)
-                && _client.GetGuild(guildId) is not null)
-            {
-                WriteConsoleLine("Guild Updated Successfully");
-                ConfigManager.GuildId = guildId;
             }
         }
     }

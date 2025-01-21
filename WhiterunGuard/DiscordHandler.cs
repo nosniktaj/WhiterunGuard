@@ -28,8 +28,6 @@ namespace WhiterunGuard
 
         private RestUserMessage? _liveMessage;
 
-        private SocketGuild? _guild;
-
         #endregion
 
         #region Constructor
@@ -99,14 +97,9 @@ namespace WhiterunGuard
 
         private async Task Client_Ready()
         {
-            _guild = _client.GetGuild(_configManager.GuildId);
+            _configManager.Load();
 
-            _configManager.LoadConfig();
-
-            await _interactionService.RegisterCommandsToGuildAsync(_guild.Id);
-
-            var x = _interactionService.Modules;
-
+            foreach (var guild in _client.Guilds) await _interactionService.RegisterCommandsToGuildAsync(guild.Id);
         }
 
         private async Task HandleInteraction(SocketInteraction interaction)

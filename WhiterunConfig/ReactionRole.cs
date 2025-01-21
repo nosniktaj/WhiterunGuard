@@ -4,31 +4,27 @@ using Discord.WebSocket;
 
 namespace WhiterunConfig
 {
-    public class ReactionRole
+    public class ReactionRole(SocketGuild guild) : BaseXML
     {
-        private SocketGuild _guild;
-
-        public string UID { get; set; }
+        public string? Uid { get; set; } = string.Empty;
         public IMessage? Message { get; set; }
 
-        public List<(IRole role, IEmote emote)> Reactions = [];
+        public readonly List<(IRole role, IEmote emote)> Reactions = [];
 
-        public void Load(XElement xElement, SocketGuild guild)
+        public override void Load(XElement xElement)
         {
-            _guild = guild;
-
-            UID = xElement.GetString("UID", string.Empty);
-            var channel = _guild.GetTextChannel(xElement.GetUlong("Channel", 0));
+            Uid = xElement.GetString("UID", string.Empty);
+            var channel = guild.GetTextChannel(xElement.GetUlong("Channel", 0));
             if (channel == null)
                 return;
 
-            IMessage? message = null;
+            IMessage? message;
 
             try
             {
                 message = channel.GetMessageAsync(xElement.GetUlong("Message", 0)).GetAwaiter().GetResult();
             }
-            catch (Exception ex)
+            catch
             {
                 return;
             }
@@ -43,10 +39,10 @@ namespace WhiterunConfig
         }
 
 
-        public XElement GenerateXml()
+        public override XElement GenerateXml()
         {
             var xElement = new XElement("ReactionRole");
-            xElement.Add(new XElement("UID", UID));
+            xElement.Add(new XElement("UID", Uid));
             xElement.Add(new XElement("Channel", Message!.Channel.Id));
             xElement.Add(new XElement("Message", Message.Id));
             var reactions = new XElement("Reactions");
@@ -56,6 +52,8 @@ namespace WhiterunConfig
                 reactions.Add(new XElement("Emote", reaction.emote));
             }
 
+            xElement.Add(reactions);
+
             return xElement;
         }
 
@@ -64,7 +62,7 @@ namespace WhiterunConfig
             List<(IRole Role, IEmote emote)> reactions = [];
             foreach (var reaction in xElement.Elements())
             {
-                var role = _guild.GetRole(reaction.GetUlong("Role", 0));
+                var role = guild.GetRole(reaction.GetUlong("Role", 0));
                 var emote = xElement.GetEmote("Emote", null);
                 if (role is null || emote is null) break;
                 reactions.Add((role, emote));

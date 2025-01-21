@@ -3,23 +3,23 @@ using Discord.WebSocket;
 
 namespace WhiterunConfig
 {
-    public class ReactionRoles
+    public class ReactionRoles(SocketGuild guild) : BaseXML
     {
         public readonly List<ReactionRole> ReactionRoleList = [];
 
-        public void Load(XElement xElement, SocketGuild guild)
+        public override void Load(XElement xElement)
         {
             ReactionRoleList.Clear();
             foreach (var (element, input) in xElement.Elements("ReactionRole")
-                         .Select(reactionRole => (reactionRole, new ReactionRole())))
+                         .Select(reactionRole => (reactionRole, new ReactionRole(guild))))
             {
-                input.Load(element, guild);
-                if (!(input.Message == null))
+                input.Load(element);
+                if (input.Message != null)
                     ReactionRoleList.Add(input);
             }
         }
 
-        public XElement GenerateXml()
+        public override XElement GenerateXml()
         {
             var xElement = new XElement("ReactionRoles");
             foreach (var reactionRole in ReactionRoleList) xElement.Add(reactionRole.GenerateXml());
