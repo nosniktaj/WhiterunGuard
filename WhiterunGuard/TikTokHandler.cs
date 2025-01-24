@@ -18,7 +18,7 @@ namespace WhiterunGuard
                 ? @"C:\Users\JonathanA\AppData\Local\Programs\Python\Python312\python312.dll"
                 : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                     ? @"/Library/Frameworks/Python.framework/Versions/3.10/Python"
-                    : @"/usr/lib/x86_64-linux-gnu/libpython3.10.so";
+                    : GetLinuxPath();
 
             PythonEngine.Initialize();
             _allowThread = PythonEngine.BeginAllowThreads();
@@ -65,6 +65,19 @@ namespace WhiterunGuard
                     _isOnline = false;
                     LiveStarted?.Invoke(this, false);
                 }
+            }
+        }
+
+        private static string GetLinuxPath()
+        {
+            var local = "/usr/lib/x86_64-linux-gnu/libpython3.10.so";
+            if (File.Exists(local))
+            {
+                return local;
+            }
+            else
+            {
+                return @"/usr/lib/aarch64-linux-gnu/libpython3.12.so";
             }
         }
     }
