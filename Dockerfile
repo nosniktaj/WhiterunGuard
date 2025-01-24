@@ -1,13 +1,14 @@
 # Use an Ubuntu base image
 FROM ubuntu:24.10 AS base
 
-RUN apt-get update && apt-get install -y python3.10 python3-pip
+# Install DotNet SDK
 RUN apt-get update && apt-get install -y dotnet-sdk-9.0
 
-
-WORKDIR /build
+# Install Python and pip
+RUN apt-get update && apt-get install -y python3.10 python3-pip
 
 # Copy the C# project files
+WORKDIR /build
 COPY WhiterunConfig/ ./WhiterunConfig/
 COPY WhiterunGuard/ ./WhiterunGuard/
 COPY WhiterunGuard.sln ./
@@ -16,12 +17,8 @@ COPY WhiterunGuard.sln ./
 RUN dotnet restore
 RUN dotnet publish -c Release -o /app
 
-# Copy Python script and requirements
-COPY WhiterunGuard/Python/TikTok.py ./TikTok.py
-COPY WhiterunGuard/Python/requirements.txt ./requirements.txt
-
 # Install Python dependencies
-RUN pip3 install --break-system-packages -r requirements.txt
+RUN pip3 install --break-system-packages -r WhiterunGuard/Python/requirements.txt
 
 WORKDIR /app
 
@@ -29,4 +26,4 @@ WORKDIR /app
 RUN rm -rf /build
 
 # Copy C# binaries from 
-ENTRYPOINT ["dotnet", "WhiterunGuardt"]	
+ENTRYPOINT ["dotnet", "WhiterunGuard.dll"]	

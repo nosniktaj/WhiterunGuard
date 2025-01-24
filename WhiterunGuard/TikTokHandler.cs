@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Python.Runtime;
 
@@ -70,15 +71,22 @@ namespace WhiterunGuard
 
         private static string GetLinuxPath()
         {
-            var local = "/usr/lib/x86_64-linux-gnu/libpython3.10.so";
-            if (File.Exists(local))
-            {
-                return local;
-            }
-            else
-            {
-                return @"/usr/lib/aarch64-linux-gnu/libpython3.12.so";
-            }
+            string pythonversion;
+            var libpath = Path.Combine("/usr", "lib",
+                $"{(RuntimeInformation.ProcessArchitecture == Architecture.Arm ? "aarch64" : "x86_64")}-linux-gnu");
+
+
+            var p = new Process();
+            p.StartInfo.FileName = "/bin/bash";
+            p.StartInfo.Arguments = $"-c \"python3 --version\"";
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.UseShellExecute = false;
+            p.Start();
+
+            var output = p.StandardOutput.ReadToEnd().Replace("\r", "").Replace("\n", "").Split(' ')[1].Split('.');
+            p.WaitForExit();
+
+            return Path.Combine(libpath, $"libpython{output[0]}.{output[1]}.so");
         }
     }
 }
