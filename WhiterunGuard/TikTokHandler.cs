@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Python.Runtime;
 
@@ -18,7 +19,7 @@ namespace WhiterunGuard
                 ? @"C:\Users\JonathanA\AppData\Local\Programs\Python\Python312\python312.dll"
                 : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                     ? @"/Library/Frameworks/Python.framework/Versions/3.10/Python"
-                    : @"/usr/lib/x86_64-linux-gnu/libpython3.10.so";
+                    : GetLinuxPath();
 
             PythonEngine.Initialize();
             _allowThread = PythonEngine.BeginAllowThreads();
@@ -66,6 +67,25 @@ namespace WhiterunGuard
                     LiveStarted?.Invoke(this, false);
                 }
             }
+        }
+
+        private static string GetLinuxPath()
+        {
+            var libpath = Path.Combine("/usr", "lib",
+                $"{(RuntimeInformation.ProcessArchitecture == Architecture.Arm ? "aarch64" : "x86_64")}-linux-gnu");
+
+
+            var p = new Process();
+            p.StartInfo.FileName = "/bin/bash";
+            p.StartInfo.Arguments = $"-c \"python3 --version\"";
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.UseShellExecute = false;
+            p.Start();
+
+            var output = p.StandardOutput.ReadToEnd().Replace("\r", "").Replace("\n", "").Split(' ')[1].Split('.');
+            p.WaitForExit();
+
+            return Path.Combine(libpath, $"libpython{output[0]}.{output[1]}.so");
         }
     }
 }
