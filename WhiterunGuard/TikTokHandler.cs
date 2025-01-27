@@ -71,7 +71,6 @@ namespace WhiterunGuard
 
         private static string GetLinuxPath()
         {
-            string pythonversion;
             var libpath = Path.Combine("/usr", "lib",
                 $"{(RuntimeInformation.ProcessArchitecture == Architecture.Arm ? "aarch64" : "x86_64")}-linux-gnu");
 

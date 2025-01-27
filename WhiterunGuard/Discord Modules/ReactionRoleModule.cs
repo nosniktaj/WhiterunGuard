@@ -194,6 +194,8 @@ namespace WhiterunGuard
                 guild.ReactionRoles.ReactionRoleList.Remove(reactionRole);
 
 
+                _configManager.Save();
+                
                 await RespondAsync("Message deleted", ephemeral: true);
             }
 
