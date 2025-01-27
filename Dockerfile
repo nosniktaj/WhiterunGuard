@@ -26,4 +26,4 @@ WORKDIR /app
 RUN rm -rf /build
 
 # Copy C# binaries from 
-ENTRYPOINT ["dotnet", "WhiterunGuard.dll"]	
+ENTRYPOINT ["./WhiterunGuard"]	

@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using System.Text;
 using Discord.WebSocket;
 using WhiterunConfig;
@@ -10,13 +11,9 @@ namespace WhiterunGuard
 
         public ConfigManager? ConfigManager = null;
 
-        public bool Running = true;
-
         #endregion
 
         #region Private Fields
-
-        private readonly DiscordSocketClient _client;
 
         private readonly StringBuilder _consoleString = new();
 
@@ -24,9 +21,8 @@ namespace WhiterunGuard
 
         #region Constructor
 
-        public ConsoleCommandHandler(DiscordSocketClient client)
+        public ConsoleCommandHandler()
         {
-            _client = client;
             Task.Run(Run);
         }
 
@@ -45,7 +41,7 @@ namespace WhiterunGuard
 
         private void Run()
         {
-            while (Running)
+            while (true)
                 if (Console.KeyAvailable)
                 {
                     var key = Console.ReadKey(true);
@@ -77,11 +73,13 @@ namespace WhiterunGuard
         private void ProcessConsoleLine(string line)
         {
             _consoleString.Clear();
-            var parts = line.Split(' ', 2);
-            switch (parts[0].ToLowerInvariant())
+            switch (line.ToLowerInvariant())
             {
                 case "end":
                     EndApplication();
+                    break;
+                case "end -y":
+                    EndApplication(true);
                     break;
                 case "ver":
                     WriteConsoleLine("Version 1.0.0");
@@ -89,9 +87,16 @@ namespace WhiterunGuard
             }
         }
 
-        private void EndApplication()
+        private void EndApplication(bool confirmed = false)
         {
-            var confirmed = false;
+            if (confirmed)
+            {
+                WriteConsoleLine("App Ending...");
+                ConfigManager?.Save();
+                confirmed = true;
+                Environment.Exit(0);
+            }
+
             while (confirmed == false)
             {
                 WriteConsoleLine("Are you sure you want to end the application? (Y/N)");
@@ -103,7 +108,7 @@ namespace WhiterunGuard
                         WriteConsoleLine("App Ending...");
                         ConfigManager?.Save();
                         confirmed = true;
-                        Running = false;
+                        Environment.Exit(0);
                         break;
                     case ConsoleKey.N:
                         WriteConsoleLine("App not ending");

@@ -15,7 +15,7 @@ namespace WhiterunGuard
         #endregion
 
         private static ServiceProvider _services;
-        private static ConsoleCommandHandler? _commandHandler;
+        private static ConsoleCommandHandler? _commandHandler = new();
         private static TikTokHandler? _tikTokHandler;
 
         private static DiscordHandler? _discord;
@@ -33,22 +33,18 @@ namespace WhiterunGuard
                 .AddSingleton<ConfigManager>() // Register ConfigManager
                 .AddSingleton<DiscordHandler>() // Register the main handler
                 .AddSingleton<TikTokHandler>() // Register other dependencies
-                .AddSingleton<ConsoleCommandHandler>()
                 .BuildServiceProvider();
             Client.Log += Log;
 
-            _commandHandler = _services.GetRequiredService<ConsoleCommandHandler>();
             _discord = _services.GetRequiredService<DiscordHandler>();
             _tikTokHandler = _services.GetRequiredService<TikTokHandler>();
-
             _tikTokHandler.LiveStarted += TikTokLiveStarted;
-            while (_commandHandler.Running) ;
-
-            Client?.Dispose();
+            while (true) ;
         }
 
         private static Task Log(LogMessage arg)
         {
+            //Console.WriteLine(arg.Message);
             _commandHandler!.WriteConsoleLine(arg.Message);
             return Task.CompletedTask;
         }
