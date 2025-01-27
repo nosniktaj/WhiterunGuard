@@ -54,7 +54,7 @@ jobs:
             # Step 9: Run the new container with the desired settings
             sudo docker run -d \
               --name whiterunguard \
-              -it \ 
+              -it \
               -d \
               -v whiterun_config_volume:/etc/opt/nosniktaj/ \
               -e WHITERUN_DISCORD_TOKEN=${{ secrets.WHITERUN_DISCORD_TOKEN}} \
