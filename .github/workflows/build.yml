@@ -43,17 +43,16 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
-          port: 22
           script: |
             # Step 7: Stop and remove the old container
-            docker stop whiterunguard || true
-            docker rm whiterunguard || true
+            sudo docker stop whiterunguard || true
+            sudo docker rm whiterunguard || true
 
             # Step 8: Pull the updated Docker image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/whiterunguard:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/whiterunguard:latest
 
             # Step 9: Run the new container with the desired settings
-            docker run -d \
+            sudo docker run -d \
               --name whiterunguard \
               -it \ 
               -d \
