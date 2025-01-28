@@ -24,8 +24,7 @@ namespace WhiterunGuard
         }
 
         #endregion
-
-
+        
         #region Message
 
         [Group("message", "Reaction Role Message Commands")]
@@ -212,7 +211,7 @@ namespace WhiterunGuard
             [SlashCommand("add", "Add a reaction role to an existing message")]
             public async Task AddReactionRoleCommand(string messageId, IRole role, string emoji)
             {
-                await RespondAsync($"Added role {role.Name} with emoji {emoji} to message {messageId}");
+                
             }
 
             [SlashCommand("remove", "Remove a reaction role from an existing message")]

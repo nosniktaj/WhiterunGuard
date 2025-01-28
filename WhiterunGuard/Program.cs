@@ -44,7 +44,6 @@ namespace WhiterunGuard
 
         private static Task Log(LogMessage arg)
         {
-            //Console.WriteLine(arg.Message);
             _commandHandler!.WriteConsoleLine(arg.Message);
             return Task.CompletedTask;
         }
