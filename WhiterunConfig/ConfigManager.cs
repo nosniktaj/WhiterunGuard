@@ -9,7 +9,7 @@ namespace WhiterunConfig
         private static readonly string _configDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Nosniktaj")
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? string.Empty //TO BE ADDED
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library", "Application Support", "Nosniktaj")
                 : Path.Combine("/etc", "opt", "nosniktaj");
 
 
